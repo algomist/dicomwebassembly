@@ -1,18 +1,29 @@
 ﻿@page "/counter"
+@inject HttpClient Http
 
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
 
 <p role="status">Current count: @currentCount</p>
+<p role="status">Message from leader: @_messageFromLeader</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<button class="btn btn-primary" @onclick="MessageTheLeader">Click me</button>
 
 @code {
     private int currentCount = 0;
+    private string _messageFromLeader = "<no message>";
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+
+    private async Task MessageTheLeader()
+    {
+        _messageFromLeader = "Talking to leader";
+
+        _messageFromLeader = await Http.GetStringAsync("/api/HelloLeader");
     }
 }
