@@ -87,6 +87,12 @@
         <div>
             Loaded Size: @dicomFile.LoadedSize
         </div>
+        @if (dicomData != null)
+        {
+            <div>
+                DICOM File Format: @dicomData.Format
+            </div>
+        }
     </div>
 }
 
@@ -106,6 +112,8 @@
     string dicomFileUrl;
     string imageFileUrl;
     string errorMessage;
+
+    DicomFile dicomData;
 
 
     void SelectFiles() =>
@@ -173,9 +181,13 @@
     {
         try
         {
-            var dicomData = await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name);
+            var byteData = await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name);
             dicomFile.IsLoaded = true;
-            dicomFile.LoadedSize = dicomData.Length;
+            dicomFile.LoadedSize = byteData.Length;
+
+            await using var memoryStream = new MemoryStream(byteData);
+
+            dicomData = await DicomFile.OpenAsync(memoryStream);
         }
         catch (Exception ex)
         {
