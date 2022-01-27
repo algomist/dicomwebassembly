@@ -1,5 +1,7 @@
 ﻿@page "/counter"
 @inject HttpClient Http
+@using FellowOakDicom;
+
 
 <PageTitle>Counter</PageTitle>
 
@@ -33,7 +35,7 @@
 <div class="row">
     <div class="col-sm-6">
         <div>
-            <button class="btn btn-primary" @onclick="SelectFiles">Select Files</button>
+            <button class="btn btn-primary" @onclick="SelectFiles">Select Image File</button>
         </div>
         @if (errorMessage != null)
         {
@@ -48,22 +50,42 @@
     </div>
 </div>
 
-@if (imageFileUrl != null)
+
+<FileSelect @ref="dicomFileSelect" FilesSelected="DicomFileSelectedHandler"></FileSelect>
+
+<div class="row">
+    <div class="col-sm-6">
+        <div>
+            <button class="btn btn-primary" @onclick="SelectDicomFiles">Select DICOM File</button>
+        </div>
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-warning" role="alert">
+                @errorMessage
+                <button type="button" class="close" aria-label="Close" @onclick="@CloseErrorAlert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@if (dicomFileUrl != null)
 {
     <hr />
     <div>
-        <div style="margin: 10px;">
-            <img src="@imageFileUrl" style="width: 400px;" />
-        </div>
         <div>
             <h5>Load the image data into .NET</h5>
-            <button class="btn btn-primary" @onclick="@LoadSelectedImageFile">Load Image</button>
+            <button class="btn btn-primary" @onclick="@LoadSelectedDicomFile">Load DICOM</button>
         </div>
         <div>
-            Is Loaded: @imageFile.IsLoaded
+            File: @dicomFile.SelectedFile.Name
         </div>
         <div>
-            Loaded Size: @imageFile.LoadedSize
+            Is Loaded: @dicomFile.IsLoaded
+        </div>
+        <div>
+            Loaded Size: @dicomFile.LoadedSize
         </div>
     </div>
 }
@@ -75,12 +97,22 @@
 
     LoadFile imageFile;
 
+    // Component reference
+    FileSelect dicomFileSelect;
+
+    LoadFile dicomFile;
+
+
+    string dicomFileUrl;
     string imageFileUrl;
     string errorMessage;
 
 
     void SelectFiles() =>
         imageFileSelect.SelectFiles();
+
+    void SelectDicomFiles() =>
+        dicomFileSelect.SelectFiles();
 
     // Handle the file selection event
     async Task ImageFileSelectedHandler(SelectedFile[] selectedFiles)
@@ -111,6 +143,39 @@
             var imageData = await imageFileSelect.GetFileBytesAsync(imageFile.SelectedFile.Name);
             imageFile.IsLoaded = true;
             imageFile.LoadedSize = imageData.Length;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    async Task DicomFileSelectedHandler(SelectedFile[] selectedFiles)
+    {
+        dicomFile = new LoadFile
+        {
+            SelectedFile = selectedFiles.FirstOrDefault(),
+            IsLoaded = false,
+            LoadedSize = 0
+        };
+
+        try
+        {
+            dicomFileUrl = await dicomFileSelect.GetFileBlobUrlAsync(dicomFile.SelectedFile.Name);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    async Task LoadSelectedDicomFile()
+    {
+        try
+        {
+            var dicomData = await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name);
+            dicomFile.IsLoaded = true;
+            dicomFile.LoadedSize = dicomData.Length;
         }
         catch (Exception ex)
         {
