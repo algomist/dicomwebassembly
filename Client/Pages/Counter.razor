@@ -27,3 +27,33 @@
         _messageFromLeader = await Http.GetStringAsync("/api/HelloLeader");
     }
 }
+
+<FileSelect @ref="fileSelect" FilesSelected="FilesSelectedHandler"></FileSelect>
+
+<button @onclick="SelectFiles">Select Files</button>
+
+@code 
+{
+    // Component reference
+    FileSelect fileSelect;
+    
+    void SelectFiles() =>
+        fileSelect.SelectFiles();
+
+    // Handle the file selection event
+    async Task FilesSelectedHandler(SelectedFile[] selectedFiles)
+    {
+    // example of opening a selected file...
+        var selectedFile = selectedFiles[0];
+        using (var fileStream = await fileSelect.OpenFileStreamAsync(selectedFile.Name))
+        {
+    // read from file stream here...
+        }
+
+    // alternatively, load all the bytes at once
+        var fileBytes = await fileSelect.GetFileBytesAsync(selectedFile.Name);
+        
+    // or, get a retrieve the underlying blob url
+        string fileBlobUrl = await fileSelect.GetFileBlobUrlAsync(selectedFile.Name);
+    }
+}
