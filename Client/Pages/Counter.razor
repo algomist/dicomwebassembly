@@ -92,6 +92,9 @@
             <div>
                 DICOM File Format: @dicomData.Format
             </div>
+            <div>
+                Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
+            </div>
         }
     </div>
 }
