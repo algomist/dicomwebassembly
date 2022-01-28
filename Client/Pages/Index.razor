@@ -11,7 +11,6 @@
 
 <h1>DICOM Hello World</h1>
 
-
 <FileSelect @ref="dicomFileSelect" FilesSelected="DicomFileSelectedHandler"></FileSelect>
 
 <div class="row">
@@ -28,34 +27,27 @@
                 </button>
             </div>
         }
-    </div>
-</div>
-
-@if (dicomFileUrl != null)
-{
-    <hr />
-    <div>
-        <div>
-            <h5>Load the image data into .NET</h5>
-            <button class="btn btn-primary" @onclick="@LoadSelectedDicomFile">Load DICOM</button>
-        </div>
-        <div>
-            File: @dicomFile?.SelectedFile?.Name
-        </div>
-        <div>
-            Is Loaded: @dicomFile?.IsLoaded
-        </div>
-        <div>
-            Loaded Size: @dicomFile?.LoadedSize
-        </div>
-        @if (dicomData != null)
+        @if (dicomFileUrl != null)
         {
+            <hr />
             <div>
-                DICOM File Format: @dicomData.Format
+                File: @dicomFile?.SelectedFile?.Name
             </div>
             <div>
-                Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
+                Is Loaded: @dicomFile?.IsLoaded
             </div>
+            <div>
+                Loaded Size: @dicomFile?.LoadedSize
+            </div>
+            @if (dicomData != null)
+            {
+                <div>
+                    DICOM File Format: @dicomData.Format
+                </div>
+                <div>
+                    Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
+                </div>
+            }
         }
         @if (dicomImage != null)
         {
@@ -67,34 +59,26 @@
             </div>
         }
     </div>
-}
+</div>
 
 <BECanvas Width="600" Height="600" @ref="_canvasReference" ></BECanvas>
 
 @code 
 {
-
     // Component reference
-    FileSelect? dicomFileSelect;
+    private FileSelect? dicomFileSelect;
+    private LoadFile? dicomFile;
+    private string? dicomFileUrl;
+    private string? errorMessage;
+    private DicomFile? dicomData;
+    private DicomImage? dicomImage;
+    private Canvas2DContext? _context;
+    private BECanvasComponent? _canvasReference;
 
-    LoadFile? dicomFile;
-
-
-    string? dicomFileUrl;
-
-    string? errorMessage;
-
-    DicomFile? dicomData;
-    DicomImage? dicomImage;
-
-    private Canvas2DContext _context;
-
-    BECanvasComponent _canvasReference;
-
-    void SelectDicomFiles() =>
+    private void SelectDicomFiles() =>
         dicomFileSelect?.SelectFiles();
 
-    async Task DicomFileSelectedHandler(SelectedFile[] selectedFiles)
+    private async Task DicomFileSelectedHandler(SelectedFile[] selectedFiles)
     {
         dicomFile = new LoadFile
         {
@@ -111,31 +95,19 @@
             }
 
             dicomFileUrl = dicomFileSelect != null ? await dicomFileSelect.GetFileBlobUrlAsync(dicomFile.SelectedFile.Name) : null;
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-    }
 
-    async Task LoadSelectedDicomFile()
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(dicomFile?.SelectedFile?.Name))
+            if (dicomFileUrl != null)
             {
-                throw new ArgumentNullException("Selected file name can't be null or empty");
+                var byteData = dicomFileSelect != null ? await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name)
+                    : Array.Empty<byte>();
+                dicomFile.IsLoaded = true;
+                dicomFile.LoadedSize = byteData.Length;
+
+                await using var memoryStream = new MemoryStream(byteData);
+
+                dicomData = await DicomFile.OpenAsync(memoryStream);
+                dicomImage = new DicomImage(dicomData.Dataset);
             }
-
-            var byteData = dicomFileSelect != null ? await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name)
-                : Array.Empty<byte>();
-            dicomFile.IsLoaded = true;
-            dicomFile.LoadedSize = byteData.Length;
-
-            await using var memoryStream = new MemoryStream(byteData);
-
-            dicomData = await DicomFile.OpenAsync(memoryStream);
-            dicomImage = new DicomImage(dicomData.Dataset);
         }
         catch (Exception ex)
         {
@@ -143,12 +115,12 @@
         }
     }
 
-    void CloseErrorAlert()
+    private void CloseErrorAlert()
     {
         ResetErrorState();
     }
 
-    void ResetErrorState()
+    private void ResetErrorState()
     {
         errorMessage = null;
     }
