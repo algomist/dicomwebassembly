@@ -1,9 +1,168 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+@inject HttpClient Http
+@using FellowOakDicom;
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+<PageTitle>DICOM File Load Experiment</PageTitle>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<h1>DICOM Hello World</h1>
+
+
+<FileSelect @ref="dicomFileSelect" FilesSelected="DicomFileSelectedHandler"></FileSelect>
+
+<div class="row">
+    <div class="col-sm-6">
+        <div>
+            <button class="btn btn-primary" @onclick="SelectDicomFiles">Select DICOM File</button>
+        </div>
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-warning" role="alert">
+                @errorMessage
+                <button type="button" class="close" aria-label="Close" @onclick="@CloseErrorAlert">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@if (dicomFileUrl != null)
+{
+    <hr />
+    <div>
+        <div>
+            <h5>Load the image data into .NET</h5>
+            <button class="btn btn-primary" @onclick="@LoadSelectedDicomFile">Load DICOM</button>
+        </div>
+        <div>
+            File: @dicomFile.SelectedFile.Name
+        </div>
+        <div>
+            Is Loaded: @dicomFile.IsLoaded
+        </div>
+        <div>
+            Loaded Size: @dicomFile.LoadedSize
+        </div>
+        @if (dicomData != null)
+        {
+            <div>
+                DICOM File Format: @dicomData.Format
+            </div>
+            <div>
+                Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
+            </div>
+        }
+    </div>
+}
+
+@code 
+{
+    // Component reference
+    FileSelect imageFileSelect;
+
+    LoadFile imageFile;
+
+    // Component reference
+    FileSelect dicomFileSelect;
+
+    LoadFile dicomFile;
+
+
+    string dicomFileUrl;
+    string imageFileUrl;
+    string? errorMessage;
+
+    DicomFile dicomData;
+
+
+    void SelectFiles() =>
+        imageFileSelect.SelectFiles();
+
+    void SelectDicomFiles() =>
+        dicomFileSelect.SelectFiles();
+
+    // Handle the file selection event
+    async Task ImageFileSelectedHandler(SelectedFile[] selectedFiles)
+    {
+        imageFile = new LoadFile()
+        {
+            SelectedFile = selectedFiles.FirstOrDefault(),
+            IsLoaded = false,
+            LoadedSize = 0
+        };
+
+        try
+        {
+    // load the blob url and dispaly the image
+            imageFileUrl = await imageFileSelect.GetFileBlobUrlAsync(imageFile.SelectedFile.Name);
+    //StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    async Task LoadSelectedImageFile()
+    {
+        try
+        {
+            var imageData = await imageFileSelect.GetFileBytesAsync(imageFile.SelectedFile.Name);
+            imageFile.IsLoaded = true;
+            imageFile.LoadedSize = imageData.Length;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    async Task DicomFileSelectedHandler(SelectedFile[] selectedFiles)
+    {
+        dicomFile = new LoadFile
+        {
+            SelectedFile = selectedFiles.FirstOrDefault(),
+            IsLoaded = false,
+            LoadedSize = 0
+        };
+
+        try
+        {
+            dicomFileUrl = await dicomFileSelect.GetFileBlobUrlAsync(dicomFile.SelectedFile.Name);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    async Task LoadSelectedDicomFile()
+    {
+        try
+        {
+            var byteData = await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name);
+            dicomFile.IsLoaded = true;
+            dicomFile.LoadedSize = byteData.Length;
+
+            await using var memoryStream = new MemoryStream(byteData);
+
+            dicomData = await DicomFile.OpenAsync(memoryStream);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    void CloseErrorAlert()
+    {
+        ResetErrorState();
+    }
+
+    void ResetErrorState()
+    {
+        errorMessage = null;
+    }
+}
