@@ -37,13 +37,13 @@
             <button class="btn btn-primary" @onclick="@LoadSelectedDicomFile">Load DICOM</button>
         </div>
         <div>
-            File: @dicomFile.SelectedFile.Name
+            File: @dicomFile?.SelectedFile?.Name
         </div>
         <div>
-            Is Loaded: @dicomFile.IsLoaded
+            Is Loaded: @dicomFile?.IsLoaded
         </div>
         <div>
-            Loaded Size: @dicomFile.LoadedSize
+            Loaded Size: @dicomFile?.LoadedSize
         </div>
         @if (dicomData != null)
         {
@@ -60,28 +60,28 @@
 @code 
 {
     // Component reference
-    FileSelect imageFileSelect;
+    FileSelect? imageFileSelect = null;
 
-    LoadFile imageFile;
+    LoadFile? imageFile;
 
     // Component reference
-    FileSelect dicomFileSelect;
+    FileSelect? dicomFileSelect;
 
-    LoadFile dicomFile;
+    LoadFile? dicomFile;
 
 
-    string dicomFileUrl;
-    string imageFileUrl;
+    string? dicomFileUrl;
+    string? imageFileUrl;
     string? errorMessage;
 
-    DicomFile dicomData;
+    DicomFile? dicomData;
 
 
     void SelectFiles() =>
-        imageFileSelect.SelectFiles();
+        imageFileSelect?.SelectFiles();
 
     void SelectDicomFiles() =>
-        dicomFileSelect.SelectFiles();
+        dicomFileSelect?.SelectFiles();
 
     // Handle the file selection event
     async Task ImageFileSelectedHandler(SelectedFile[] selectedFiles)
@@ -95,9 +95,13 @@
 
         try
         {
-    // load the blob url and dispaly the image
-            imageFileUrl = await imageFileSelect.GetFileBlobUrlAsync(imageFile.SelectedFile.Name);
-    //StateHasChanged();
+            // load the blob url and dispaly the image
+            if (string.IsNullOrEmpty(imageFile?.SelectedFile?.Name))
+            {
+                throw new ArgumentNullException("Selected file name can't be null or empty");
+            }
+            imageFileUrl = imageFileSelect != null ? await imageFileSelect.GetFileBlobUrlAsync(imageFile.SelectedFile.Name) : null;
+            //StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -109,7 +113,13 @@
     {
         try
         {
-            var imageData = await imageFileSelect.GetFileBytesAsync(imageFile.SelectedFile.Name);
+            if (string.IsNullOrEmpty(imageFile?.SelectedFile?.Name))
+            {
+                throw new ArgumentNullException("Selected file name can't be null or empty");
+            }
+
+            var imageData = imageFileSelect != null ? await imageFileSelect.GetFileBytesAsync(imageFile.SelectedFile.Name)
+                : Array.Empty<byte>();
             imageFile.IsLoaded = true;
             imageFile.LoadedSize = imageData.Length;
         }
@@ -130,7 +140,12 @@
 
         try
         {
-            dicomFileUrl = await dicomFileSelect.GetFileBlobUrlAsync(dicomFile.SelectedFile.Name);
+            if (string.IsNullOrEmpty(dicomFile?.SelectedFile?.Name))
+            {
+                throw new ArgumentNullException("Selected file name can't be null or empty");
+            }
+
+            dicomFileUrl = dicomFileSelect != null ? await dicomFileSelect.GetFileBlobUrlAsync(dicomFile.SelectedFile.Name) : null;
         }
         catch (Exception ex)
         {
@@ -142,7 +157,13 @@
     {
         try
         {
-            var byteData = await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name);
+            if (string.IsNullOrEmpty(dicomFile?.SelectedFile?.Name))
+            {
+                throw new ArgumentNullException("Selected file name can't be null or empty");
+            }
+
+            var byteData = dicomFileSelect != null ? await dicomFileSelect.GetFileBytesAsync(dicomFile.SelectedFile.Name)
+                : Array.Empty<byte>();
             dicomFile.IsLoaded = true;
             dicomFile.LoadedSize = byteData.Length;
 
