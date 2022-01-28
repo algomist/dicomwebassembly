@@ -1,5 +1,6 @@
 ﻿@page "/"
-
+@using global::IntegrationClient
+@inject ServiceClient client; 
 @inject HttpClient Http
 @using FellowOakDicom;
 @using FellowOakDicom.Imaging
@@ -48,6 +49,12 @@
                     Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
                 </div>
             }
+            @if (anonimized_patientId != null)
+            {
+                <div>
+                   Anonimized Patient ID: @anonimized_patientId
+                </div>
+            }
         }
         @if (dicomImage != null)
         {
@@ -70,6 +77,7 @@
     private LoadFile? dicomFile;
     private string? dicomFileUrl;
     private string? errorMessage;
+    private string? anonimized_patientId;
     private DicomFile? dicomData;
     private DicomImage? dicomImage;
     private Canvas2DContext? _context;
@@ -102,11 +110,11 @@
                     : Array.Empty<byte>();
                 dicomFile.IsLoaded = true;
                 dicomFile.LoadedSize = byteData.Length;
-
                 await using var memoryStream = new MemoryStream(byteData);
-
                 dicomData = await DicomFile.OpenAsync(memoryStream);
                 dicomImage = new DicomImage(dicomData.Dataset);
+
+                anonimized_patientId = await client.AnonymizeDICOM(byteData);
             }
         }
         catch (Exception ex)

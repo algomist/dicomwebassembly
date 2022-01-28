@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiIsolated", "ApiIsolated\ApiIsolated.csproj", "{162B3342-33B4-49D4-BFD9-F10C053B2025}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationClient", "App.IntegrationClient\IntegrationClient.csproj", "{81104D6E-70B1-4001-A300-79E6FF5121B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationClientTest", "App.IntegrationClientTest\IntegrationClientTest.csproj", "{6A65F7CE-94B9-4484-A4C4-AD5E6D15604C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{162B3342-33B4-49D4-BFD9-F10C053B2025}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{162B3342-33B4-49D4-BFD9-F10C053B2025}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{162B3342-33B4-49D4-BFD9-F10C053B2025}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81104D6E-70B1-4001-A300-79E6FF5121B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81104D6E-70B1-4001-A300-79E6FF5121B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81104D6E-70B1-4001-A300-79E6FF5121B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81104D6E-70B1-4001-A300-79E6FF5121B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A65F7CE-94B9-4484-A4C4-AD5E6D15604C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A65F7CE-94B9-4484-A4C4-AD5E6D15604C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A65F7CE-94B9-4484-A4C4-AD5E6D15604C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A65F7CE-94B9-4484-A4C4-AD5E6D15604C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
