@@ -2,7 +2,10 @@
 
 @inject HttpClient Http
 @using FellowOakDicom;
-
+@using FellowOakDicom.Imaging
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
 
 <PageTitle>DICOM File Load Experiment</PageTitle>
 
@@ -54,8 +57,19 @@
                 Patient ID: @dicomData.Dataset.GetString(DicomTag.PatientID);
             </div>
         }
+        @if (dicomImage != null)
+        {
+            <div>
+                DICOM Image Width: @dicomImage.Width
+            </div>
+            <div>
+                DICOM Image Height: @dicomImage.Height
+            </div>
+        }
     </div>
 }
+
+<BECanvas Width="600" Height="600" @ref="_canvasReference" ></BECanvas>
 
 @code 
 {
@@ -75,10 +89,11 @@
     string? errorMessage;
 
     DicomFile dicomData;
+    DicomImage dicomImage;
 
+    private Canvas2DContext _context;
 
-    void SelectFiles() =>
-        imageFileSelect.SelectFiles();
+    BECanvasComponent _canvasReference;
 
     void SelectDicomFiles() =>
         dicomFileSelect.SelectFiles();
@@ -98,20 +113,6 @@
     // load the blob url and dispaly the image
             imageFileUrl = await imageFileSelect.GetFileBlobUrlAsync(imageFile.SelectedFile.Name);
     //StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-    }
-
-    async Task LoadSelectedImageFile()
-    {
-        try
-        {
-            var imageData = await imageFileSelect.GetFileBytesAsync(imageFile.SelectedFile.Name);
-            imageFile.IsLoaded = true;
-            imageFile.LoadedSize = imageData.Length;
         }
         catch (Exception ex)
         {
@@ -149,6 +150,7 @@
             await using var memoryStream = new MemoryStream(byteData);
 
             dicomData = await DicomFile.OpenAsync(memoryStream);
+            dicomImage = new DicomImage(dicomData.Dataset);
         }
         catch (Exception ex)
         {
@@ -164,5 +166,13 @@
     void ResetErrorState()
     {
         errorMessage = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        this._context = await this._canvasReference.CreateCanvas2DAsync();
+        await this._context.SetFillStyleAsync("Green");
+
+        await this._context.FillRectAsync(0, 0, 600, 600);
     }
 }
