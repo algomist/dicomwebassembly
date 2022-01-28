@@ -73,10 +73,6 @@
 
 @code 
 {
-    // Component reference
-    FileSelect? imageFileSelect = null;
-
-    LoadFile? imageFile;
 
     // Component reference
     FileSelect? dicomFileSelect;
@@ -85,10 +81,11 @@
 
 
     string? dicomFileUrl;
-    string? imageFileUrl;
+
     string? errorMessage;
 
     DicomFile? dicomData;
+    DicomImage? dicomImage;
 
     private Canvas2DContext _context;
 
@@ -96,32 +93,6 @@
 
     void SelectDicomFiles() =>
         dicomFileSelect?.SelectFiles();
-
-    // Handle the file selection event
-    async Task ImageFileSelectedHandler(SelectedFile[] selectedFiles)
-    {
-        imageFile = new LoadFile()
-        {
-            SelectedFile = selectedFiles.FirstOrDefault(),
-            IsLoaded = false,
-            LoadedSize = 0
-        };
-
-        try
-        {
-            // load the blob url and dispaly the image
-            if (string.IsNullOrEmpty(imageFile?.SelectedFile?.Name))
-            {
-                throw new ArgumentNullException("Selected file name can't be null or empty");
-            }
-            imageFileUrl = imageFileSelect != null ? await imageFileSelect.GetFileBlobUrlAsync(imageFile.SelectedFile.Name) : null;
-            //StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-    }
 
     async Task DicomFileSelectedHandler(SelectedFile[] selectedFiles)
     {
